@@ -32,6 +32,17 @@ setup (name = "esmre",
         Modules used to accelerate execution of a large collection of regular
         expressions using the Aho-Corasick algorithms.
        """.strip().split()),
+       classifiers = [
+        'Development Status :: 5 - Production/Stable',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved ::',
+            'GNU Library or Lesser General Public License (LGPL)',
+        'Operating System :: POSIX',
+        'Programming Language :: C',
+        'Programming Language :: Python',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+        'Topic :: Text Processing :: Indexing'
+       ],
        author = 'Will Harris',
        author_email = 'w.harris@tideway.com',
        url = 'http://code.google.com/p/esmre/',
