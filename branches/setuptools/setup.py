@@ -43,6 +43,7 @@ setup (name = "esmre",
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Topic :: Text Processing :: Indexing'
        ],
+       install_requires=['setuptools'],
        author = 'Will Harris',
        author_email = 'w.harris@tideway.com',
        url = 'http://code.google.com/p/esmre/',
