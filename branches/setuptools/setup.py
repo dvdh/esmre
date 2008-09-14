@@ -33,7 +33,7 @@ setup (name = "esmre",
         expressions using the Aho-Corasick algorithms.
        """.strip().split()),
        classifiers = [
-        'Development Status :: 5 - Production/Stable',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'License :: OSI Approved ::',
             'GNU Library or Lesser General Public License (LGPL)',
