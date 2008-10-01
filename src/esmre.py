@@ -80,30 +80,24 @@ class InGroupState(object):
 
 class RootState(object):
     def __init__(self):
-        self.hints        = [""]
-        self.to_append    = ""
+        self.hints = [""]
 
     def process_byte(self, ch):
         self.update_hints(ch)
         return self.next_state(ch)
     
     def bank_current_hint_with_last_byte(self):
-        self.hints[-1] += self.to_append
-        
-        self.to_append = ""
         self.hints.append("")
     
     def bank_current_hint_and_forget_last_byte(self):
-        self.to_append = ""
+        self.hints[-1] = self.hints[-1][:-1]
         self.hints.append("")
     
     def forget_all_hints(self):
         self.hints = []
     
     def append_to_current_hint(self, ch):
-        self.hints[-1] += self.to_append
-        
-        self.to_append = ch
+        self.hints[-1] += ch
     
     def update_hints(self, ch):
         if ch in "?*{":
@@ -145,9 +139,6 @@ def hints(regex):
         for ch in regex:
             state = state.process_byte(ch)
         
-        if state.to_append:
-            state.hints[-1] += state.to_append
-    
     except StopIteration:
         pass
             
