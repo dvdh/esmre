@@ -57,84 +57,87 @@ class InBracesState(object):
             return self
 
 
+class InGroupState(object):
+    def __init__(self, parent_state):
+        self.parent_state = parent_state
+    
+    def process_byte(self, ch):
+        if ch == ")":
+            return self.parent_state
+            
+        elif ch == "(":
+            return InGroupState(self)
+            
+        elif ch == "[":
+            return InClassState(self)
+            
+        elif ch == "\\":
+            return InBackslashState(self)
+            
+        else:
+            return self
+
+
 class RootState(object):
     def __init__(self):
         self.hints        = [""]
         self.to_append    = ""
-        self.group_level  = 0
 
     def process_byte(self, ch):
         next_state = self
         
-        if self.group_level > 0:
-            if ch == ")":
-                self.group_level -= 1
-                
-            elif ch == "(":
-                self.group_level += 1
-                
-            elif ch == "[":
-                next_state = InClassState(self)
-                
-            elif ch == "\\":
-                next_state = InBackslashState(self)
-                
-            else:
-                pass
+        if ch in "?*":
+            self.to_append = ""
+            self.hints.append("")
         
+        elif ch in "+.^$":
+            if self.to_append:
+                self.hints[-1] += self.to_append
+            
+            self.to_append = ""
+            self.hints.append("")
+        
+        elif ch == "(":
+            if self.to_append:
+                self.hints[-1] += self.to_append
+                
+            self.to_append = ""
+            self.hints.append("")
+            next_state = InGroupState(self)
+        
+        elif ch == "[":
+            if self.to_append:
+                self.hints[-1] += self.to_append
+            
+            self.to_append = ""
+            self.hints.append("")
+            next_state = InClassState(self)
+        
+        elif ch == "{":
+            if self.to_append:
+                self.hints[-1] += self.to_append[:-1]
+            
+            self.to_append = ""
+            self.hints.append("")
+            next_state = InBracesState(self)
+            
+        elif ch == "\\":
+            if self.to_append:
+                self.hints[-1] += self.to_append
+            
+            self.to_append = ""
+            self.hints.append("")
+            next_state = InBackslashState(self)
+            
+        elif ch == "|":
+            self.hints = []
+            raise StopIteration
+            
         else:
-            if ch in "?*":
-                self.to_append = ""
-                self.hints.append("")
+            if self.to_append:
+                self.hints[-1] += self.to_append
             
-            elif ch in "+.^$":
-                if self.to_append:
-                    self.hints[-1] += self.to_append
-                
-                self.to_append = ""
-                self.hints.append("")
-            
-            elif ch == "(":
-                if self.to_append:
-                    self.hints[-1] += self.to_append
-                    
-                self.to_append = ""
-                self.hints.append("")
-                self.group_level += 1
-            
-            elif ch == "[":
-                if self.to_append:
-                    self.hints[-1] += self.to_append
-                
-                self.to_append = ""
-                self.hints.append("")
-                next_state = InClassState(self)
-            
-            elif ch == "{":
-                if self.to_append:
-                    self.hints[-1] += self.to_append[:-1]
-                
-                self.to_append = ""
-                self.hints.append("")
-                next_state = InBracesState(self)
-                
-            elif ch == "\\":
-                if self.to_append:
-                    self.hints[-1] += self.to_append
-                
-                self.to_append = ""
-                self.hints.append("")
-                next_state = InBackslashState(self)
-                
-            elif ch == "|":
-                self.hints = []
-                raise StopIteration
-                
-            else:
-                if self.to_append:
-                    self.hints[-1] += self.to_append
-                
-                self.to_append = ch
+            self.to_append = ch
         
         return next_state
 
