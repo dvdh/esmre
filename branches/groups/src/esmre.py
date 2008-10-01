@@ -45,12 +45,23 @@ class InClassState(object):
             return self
 
 
+class InBracesState(object):
+    def __init__(self, parent_state):
+        self.parent_state = parent_state
+    
+    def process_byte(self, ch):
+        if ch == "}":
+            return self.parent_state
+        
+        else:
+            return self
+
+
 class RootState(object):
     def __init__(self):
         self.hints        = [""]
         self.to_append    = ""
         self.group_level  = 0
-        self.in_braces    = False
 
     def process_byte(self, ch):
         next_state = self
@@ -68,13 +79,6 @@ class RootState(object):
             elif ch == "\\":
                 next_state = InBackslashState(self)
                 
-            else:
-                pass
-        
-        elif self.in_braces:
-            if ch == "}":
-                self.in_braces = False
-            
             else:
                 pass
         
@@ -112,7 +116,7 @@ class RootState(object):
                 
                 self.to_append = ""
                 self.hints.append("")
-                self.in_braces = True
+                next_state = InBracesState(self)
                 
             elif ch == "\\":
                 if self.to_append:
