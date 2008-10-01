@@ -101,8 +101,7 @@ class RootState(object):
         self.hints = []
     
     def append_to_current_hint(self, ch):
-        if self.to_append:
-            self.hints[-1] += self.to_append
+        self.hints[-1] += self.to_append
         
         self.to_append = ch
     
