@@ -57,28 +57,7 @@ class InBracesState(object):
             return self
 
 
-class InGroupState(object):
-    def __init__(self, parent_state):
-        self.parent_state = parent_state
-    
-    def process_byte(self, ch):
-        if ch == ")":
-            return self.parent_state
-            
-        elif ch == "(":
-            return InGroupState(self)
-            
-        elif ch == "[":
-            return InClassState(self)
-            
-        elif ch == "\\":
-            return InBackslashState(self)
-            
-        else:
-            return self
-
-
-class RootState(object):
+class CollectingState(object):
     def __init__(self):
         self.hints = [""]
 
@@ -94,7 +73,7 @@ class RootState(object):
         self.hints.append("")
     
     def forget_all_hints(self):
-        self.hints = []
+        self.hints = [""]
     
     def append_to_current_hint(self, ch):
         self.hints[-1] += ch
@@ -126,10 +105,45 @@ class RootState(object):
             return InBackslashState(self)
             
         elif ch == "|":
-            raise StopIteration
+            return self.alternation_state()
             
         else:
             return self
+    
+    def alternation_state(self):
+        raise NotImplementedError
+
+
+class RootState(CollectingState):
+    def alternation_state(self):
+        raise StopIteration
+
+
+class InGroupState(CollectingState):
+    def __init__(self, parent_state):
+        CollectingState.__init__(self)
+        self.parent_state = parent_state
+        self.had_alternation = False
+    
+    def update_hints(self, ch):
+        if ch == ")":
+            if not self.had_alternation:
+                self.parent_state.hints.extend(self.hints)
+        else:
+            CollectingState.update_hints(self, ch)
+    
+    def next_state(self, ch):
+        if ch == ")":
+            return self.close_group_state()
+        else:
+            return CollectingState.next_state(self, ch)
+    
+    def close_group_state(self):
+        return self.parent_state
+    
+    def alternation_state(self):
+        self.had_alternation = True
+        return self
 
 
 def hints(regex):
