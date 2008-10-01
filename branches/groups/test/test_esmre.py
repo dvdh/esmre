@@ -2,7 +2,7 @@
 # encoding: utf-8
 
 # esmre_tests.py - tests for esmre module
-# Copyright (C) 2007 Tideway Systems Limited.
+# Copyright (C) 2007-2008 Tideway Systems Limited.
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -105,6 +105,34 @@ class HintExtractionTests(unittest.TestCase):
     def testSkipsOptionalGroups(self):
         self.checkHints(["Shiver me timbers!"],
                         r"Shiver me timbers!( Arrr!)?")
+    
+    def testSkipsMostExtensionGroups(self):
+        for regex in [
+                # set flag
+                r"(?i)(?L)(?m)(?s)(?u)(?x)",
+                
+                # non-grouping paren 
+                r"(?:foo)",
+                
+                # comment
+                r"(?#foo)",
+                
+                # lookahead
+                r"(?=foo)",
+                
+                # negative lookahead
+                r"(?!foo)",
+                
+                # lookbehind
+                r"(?<=foo)",
+                
+                # negative lookbehind
+                r"(?<!foo)",
+                
+                # conditional match
+                r"(?(1)foo|bar)"]:
+            
+            self.checkHints([], regex)
 
 class ShortlistTests(unittest.TestCase):
     def checkShortlist(self, expected_shortlist, hints):
