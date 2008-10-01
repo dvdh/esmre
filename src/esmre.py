@@ -2,7 +2,7 @@
 # encoding: utf-8
 
 # esmre.py - clue-indexed regular expressions module
-# Copyright (C) 2007 Tideway Systems Limited.
+# Copyright (C) 2007-2008 Tideway Systems Limited.
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -97,7 +97,7 @@ class CollectingState(object):
     
     def next_state(self, ch):
         if ch == "(":
-            return InGroupState(self)
+            return StartOfGroupState(self)
         
         elif ch == "[":
             return InClassState(self)
@@ -121,6 +121,17 @@ class CollectingState(object):
 class RootState(CollectingState):
     def alternation_state(self):
         raise StopIteration
+
+
+class StartOfGroupState(object):
+    def __init__(self, parent_state):
+        self.parent_state = parent_state
+    
+    def process_byte(self, ch):
+        if ch == "?":
+            return StartOfExtensionGroupState(self.parent_state)
+        else:
+            return InGroupState(self.parent_state).process_byte(ch)
 
 
 class InGroupState(CollectingState):
@@ -148,6 +159,11 @@ class InGroupState(CollectingState):
     def alternation_state(self):
         self.had_alternation = True
         return self
+
+
+class StartOfExtensionGroupState(InGroupState):
+    def update_hints(self, ch):
+        pass
 
 
 def hints(regex):
