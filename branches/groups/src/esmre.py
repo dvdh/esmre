@@ -22,25 +22,31 @@
 import esm
 import threading
 
+class InBackslashState(object):
+    def __init__(self, parent_state):
+        self.parent_state = parent_state
+    
+    def process_byte(self, ch):
+        return self.parent_state
+
+
 class RootState(object):
     def __init__(self):
         self.hints        = [""]
         self.to_append    = ""
         self.group_level  = 0
         self.in_class     = False
-        self.in_backslash = False
         self.in_braces    = False
 
     def process_byte(self, ch):
-        if self.in_backslash:
-            self.in_backslash = False
-            
-        elif self.in_class:
+        next_state = self
+        
+        if self.in_class:
             if ch == "]":
                 self.in_class = False
                 
             elif ch == "\\":
-                self.in_backslash = True
+                next_state = InBackslashState(self)
             
             else:
                 pass
@@ -56,7 +62,7 @@ class RootState(object):
                 self.in_class = True
                 
             elif ch == "\\":
-                self.in_backslash = True
+                next_state = InBackslashState(self)
                 
             else:
                 pass
@@ -110,7 +116,7 @@ class RootState(object):
                 
                 self.to_append = ""
                 self.hints.append("")
-                self.in_backslash = True
+                next_state = InBackslashState(self)
                 
             elif ch == "|":
                 self.hints = []
@@ -121,14 +127,15 @@ class RootState(object):
                     self.hints[-1] += self.to_append
                 
                 self.to_append = ch
-
+        
+        return next_state
 
 def hints(regex):
     state = RootState()
     
     try:
         for ch in regex:
-            state.process_byte(ch)
+            state = state.process_byte(ch)
         
         if state.to_append:
             state.hints[-1] += state.to_append
