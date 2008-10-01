@@ -161,7 +161,40 @@ class InGroupState(CollectingState):
         return self
 
 
-class StartOfExtensionGroupState(InGroupState):
+class StartOfExtensionGroupState(object):
+    def __init__(self, parent_state):
+        self.parent_state = parent_state
+    
+    def process_byte(self, ch):
+        if ch == "P":
+            return MaybeStartOfNamedGroupState(self.parent_state)
+        else:
+            return IgnoredGroupState(self.parent_state).process_byte(ch)
+
+
+class MaybeStartOfNamedGroupState(object):
+    def __init__(self, parent_state):
+        self.parent_state = parent_state
+    
+    def process_byte(self, ch):
+        if ch == "<":
+            return InNamedGroupNameState(self.parent_state)
+        else:
+            return IgnoredGroupState(self.parent_state)
+
+
+class InNamedGroupNameState(object):
+    def __init__(self, parent_state):
+        self.parent_state = parent_state
+    
+    def process_byte(self, ch):
+        if ch == ">":
+            return InGroupState(self.parent_state)
+        else:
+            return self
+
+
+class IgnoredGroupState(InGroupState):
     def update_hints(self, ch):
         pass
 

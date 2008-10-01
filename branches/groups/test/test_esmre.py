@@ -114,6 +114,9 @@ class HintExtractionTests(unittest.TestCase):
                 # non-grouping paren 
                 r"(?:foo)",
                 
+                # previous named group
+                r"(?P=foo)",
+                
                 # comment
                 r"(?#foo)",
                 
@@ -133,6 +136,11 @@ class HintExtractionTests(unittest.TestCase):
                 r"(?(1)foo|bar)"]:
             
             self.checkHints([], regex)
+    
+    def testGetsHintsFromNamedGroup(self):
+        self.checkHints(
+            ["/"], r"(?P<date>[0-3][0-9]/[0-1][0-9]/[1-2][0-9]{3})")
+
 
 class ShortlistTests(unittest.TestCase):
     def checkShortlist(self, expected_shortlist, hints):
