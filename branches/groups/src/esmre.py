@@ -87,33 +87,48 @@ class RootState(object):
         self.update_hints(ch)
         return self.next_state(ch)
     
+    def forget_current_hint(self):
+        self.to_append = ""
+        self.hints.append("")
+    
+    def bank_current_hint_with_last_byte(self):
+        if self.to_append:
+            self.hints[-1] += self.to_append
+        
+        self.to_append = ""
+        self.hints.append("")
+    
+    def bank_current_hint_and_forget_last_byte(self):
+        if self.to_append:
+            self.hints[-1] += self.to_append[:-1]
+        
+        self.to_append = ""
+        self.hints.append("")
+    
+    def forget_all_hints(self):
+        self.hints = []
+    
+    def append_to_current_hint(self, ch):
+        if self.to_append:
+            self.hints[-1] += self.to_append
+        
+        self.to_append = ch
+    
     def update_hints(self, ch):
         if ch in "?*":
-            self.to_append = ""
-            self.hints.append("")
+            self.forget_current_hint()
         
         elif ch in "+.^$([\\":
-            if self.to_append:
-                self.hints[-1] += self.to_append
-            
-            self.to_append = ""
-            self.hints.append("")
+            self.bank_current_hint_with_last_byte()
         
         elif ch == "{":
-            if self.to_append:
-                self.hints[-1] += self.to_append[:-1]
-            
-            self.to_append = ""
-            self.hints.append("")
+            self.bank_current_hint_and_forget_last_byte()
             
         elif ch == "|":
-            self.hints = []
+            self.forget_all_hints()
             
         else:
-            if self.to_append:
-                self.hints[-1] += self.to_append
-            
-            self.to_append = ch
+            self.append_to_current_hint(ch)
     
     def next_state(self, ch):
         if ch == "(":
