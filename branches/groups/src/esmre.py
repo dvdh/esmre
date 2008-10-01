@@ -22,109 +22,113 @@
 import esm
 import threading
 
+class RootState(object):
+    def __init__(self):
+        self.hints        = [""]
+        self.to_append    = ""
+        self.group_level  = 0
+        self.in_class     = False
+        self.in_backslash = False
+        self.in_braces    = False
+
+
 def hints(regex):
-    hints = [""]
-    to_append = ""
-    
-    group_level = 0
-    in_class = False
-    in_backslash = False
-    in_braces = False
+    state = RootState()
     
     for ch in regex:
-        if in_backslash:
-            in_backslash = False
+        if state.in_backslash:
+            state.in_backslash = False
             
-        elif in_class:
+        elif state.in_class:
             if ch == "]":
-                in_class = False
+                state.in_class = False
                 
             elif ch == "\\":
-                in_backslash = True
+                state.in_backslash = True
             
             else:
                 pass
             
-        elif group_level > 0:
+        elif state.group_level > 0:
             if ch == ")":
-                group_level -= 1
+                state.group_level -= 1
                 
             elif ch == "(":
-                group_level += 1
+                state.group_level += 1
                 
             elif ch == "[":
-                in_class = True
+                state.in_class = True
                 
             elif ch == "\\":
-                in_backslash = True
+                state.in_backslash = True
                 
             else:
                 pass
         
-        elif in_braces:
+        elif state.in_braces:
             if ch == "}":
-                in_braces = False
+                state.in_braces = False
             
             else:
                 pass
         
         else:
             if ch in "?*":
-                to_append = ""
-                hints.append("")
+                state.to_append = ""
+                state.hints.append("")
             
             elif ch in "+.^$":
-                if to_append:
-                    hints[-1] += to_append
+                if state.to_append:
+                    state.hints[-1] += state.to_append
                 
-                to_append = ""
-                hints.append("")
+                state.to_append = ""
+                state.hints.append("")
             
             elif ch == "(":
-                if to_append:
-                    hints[-1] += to_append
+                if state.to_append:
+                    state.hints[-1] += state.to_append
                     
-                to_append = ""
-                hints.append("")
-                group_level += 1
+                state.to_append = ""
+                state.hints.append("")
+                state.group_level += 1
             
             elif ch == "[":
-                if to_append:
-                    hints[-1] += to_append
+                if state.to_append:
+                    state.hints[-1] += state.to_append
                 
-                to_append = ""
-                hints.append("")
-                in_class = True
+                state.to_append = ""
+                state.hints.append("")
+                state.in_class = True
             
             elif ch == "{":
-                if to_append:
-                    hints[-1] += to_append[:-1]
+                if state.to_append:
+                    state.hints[-1] += state.to_append[:-1]
                 
-                to_append = ""
-                hints.append("")
-                in_braces = True
+                state.to_append = ""
+                state.hints.append("")
+                state.in_braces = True
                 
             elif ch == "\\":
-                if to_append:
-                    hints[-1] += to_append
+                if state.to_append:
+                    state.hints[-1] += state.to_append
                 
-                to_append = ""
-                hints.append("")
-                in_backslash = True
+                state.to_append = ""
+                state.hints.append("")
+                state.in_backslash = True
                 
             elif ch == "|":
                 return []
                 
             else:
-                if to_append:
-                    hints[-1] += to_append
+                if state.to_append:
+                    state.hints[-1] += state.to_append
                 
-                to_append = ch
+                state.to_append = ch
             
-    if to_append:
-        hints[-1] += to_append
+    if state.to_append:
+        state.hints[-1] += state.to_append
             
-    return [hint for hint in hints if hint]
+    return [hint for hint in state.hints if hint]
 
 
 def shortlist(hints):
