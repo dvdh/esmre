@@ -30,28 +30,32 @@ class InBackslashState(object):
         return self.parent_state
 
 
+class InClassState(object):
+    def __init__(self, parent_state):
+        self.parent_state = parent_state
+    
+    def process_byte(self, ch):
+        if ch == "]":
+            return self.parent_state
+            
+        elif ch == "\\":
+            return InBackslashState(self)
+        
+        else:
+            return self
+
+
 class RootState(object):
     def __init__(self):
         self.hints        = [""]
         self.to_append    = ""
         self.group_level  = 0
-        self.in_class     = False
         self.in_braces    = False
 
     def process_byte(self, ch):
         next_state = self
         
-        if self.in_class:
-            if ch == "]":
-                self.in_class = False
-                
-            elif ch == "\\":
-                next_state = InBackslashState(self)
-            
-            else:
-                pass
-            
-        elif self.group_level > 0:
+        if self.group_level > 0:
             if ch == ")":
                 self.group_level -= 1
                 
@@ -59,7 +63,7 @@ class RootState(object):
                 self.group_level += 1
                 
             elif ch == "[":
-                self.in_class = True
+                next_state = InClassState(self)
                 
             elif ch == "\\":
                 next_state = InBackslashState(self)
@@ -100,7 +104,7 @@ class RootState(object):
                 
                 self.to_append = ""
                 self.hints.append("")
-                self.in_class = True
+                next_state = InClassState(self)
             
             elif ch == "{":
                 if self.to_append:
