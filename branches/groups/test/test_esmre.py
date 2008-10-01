@@ -24,7 +24,7 @@ import esmre
 
 class HintExtractionTests(unittest.TestCase):
     def checkHints(self, expected_hints, regex):
-        self.assertEqual(expected_hints, esmre.hints(regex))
+        self.assertEqual(set(expected_hints), set(esmre.hints(regex)))
         
     def testSimpleString(self):
         self.checkHints(["yarr"], r"yarr")
@@ -42,7 +42,7 @@ class HintExtractionTests(unittest.TestCase):
         self.checkHints(["ava", "st me harties"],
                          r"ava+st me harties")
     
-    def testSkipsGroups(self):
+    def testSkipsGroupsWithAlternation(self):
         self.checkHints(["Hoist the ", ", ye ", "!"],
              r"Hoist the (mizzen mast|main brace), "
                        r"ye (landlubbers|scurvy dogs)!")
@@ -56,7 +56,7 @@ class HintExtractionTests(unittest.TestCase):
                          r"Hard to .+!")
                          
     def testSkipsNestedGroups(self):
-        self.checkHints(["Squark!"],
+        self.checkHints(["Squark!", " Pieces of ", "!"],
                          r"Squark!( Pieces of (.+)!)")
                          
     def testSkipsCharacterClass(self):
@@ -68,7 +68,7 @@ class HintExtractionTests(unittest.TestCase):
                          r":=([)D])X")
                          
     def testSkipsBackslashMetacharacters(self):
-        self.checkHints(["Cap'n", " "],
+        self.checkHints(["Cap'n", " ", " Beard"],
                          r"Cap'n\b ([\S] Beard)")
                          
     def testBackslashBracketDoesNotCloseGroup(self):
@@ -80,7 +80,7 @@ class HintExtractionTests(unittest.TestCase):
                          r":=[)D\]]X")
                          
     def testSkipsMetacharactersAfterGroups(self):
-        self.checkHints(["Yo ", " and a bottle of rum"],
+        self.checkHints(["Yo ", "ho ", " and a bottle of rum"],
                         r"Yo (ho )+ and a bottle of rum")
     
     def testSkipsRepetionBraces(self):
@@ -99,6 +99,12 @@ class HintExtractionTests(unittest.TestCase):
     def testOnlyGroupGivesEmptyResult(self):
         self.checkHints([], r"(rum|grog)")
     
+    def testGetsHintsFromGroups(self):
+        self.checkHints(["/"], r"([0-3][0-9]/[0-1][0-9]/[1-2][0-9]{3})")
+    
+    def testSkipsOptionalGroups(self):
+        self.checkHints(["Shiver me timbers!"],
+                        r"Shiver me timbers!( Arrr!)?")
 
 class ShortlistTests(unittest.TestCase):
     def checkShortlist(self, expected_shortlist, hints):
