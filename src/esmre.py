@@ -84,6 +84,10 @@ class RootState(object):
         self.to_append    = ""
 
     def process_byte(self, ch):
+        self.update_hints(ch)
+        return self.next_state(ch)
+    
+    def update_hints(self, ch):
         if ch in "?*":
             self.to_append = ""
             self.hints.append("")
@@ -110,10 +114,8 @@ class RootState(object):
                 self.hints[-1] += self.to_append
             
             self.to_append = ch
-
-
-
-
+    
+    def next_state(self, ch):
         if ch == "(":
             return InGroupState(self)
         
