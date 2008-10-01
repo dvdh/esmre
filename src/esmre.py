@@ -88,21 +88,7 @@ class RootState(object):
             self.to_append = ""
             self.hints.append("")
         
-        elif ch in "+.^$":
-            if self.to_append:
-                self.hints[-1] += self.to_append
-            
-            self.to_append = ""
-            self.hints.append("")
-        
-        elif ch == "(":
-            if self.to_append:
-                self.hints[-1] += self.to_append
-                
-            self.to_append = ""
-            self.hints.append("")
-        
-        elif ch == "[":
+        elif ch in "+.^$([\\":
             if self.to_append:
                 self.hints[-1] += self.to_append
             
@@ -112,13 +98,6 @@ class RootState(object):
         elif ch == "{":
             if self.to_append:
                 self.hints[-1] += self.to_append[:-1]
-            
-            self.to_append = ""
-            self.hints.append("")
-            
-        elif ch == "\\":
-            if self.to_append:
-                self.hints[-1] += self.to_append
             
             self.to_append = ""
             self.hints.append("")
@@ -135,13 +114,7 @@ class RootState(object):
 
 
 
-        if ch in "?*":
-            return self
-        
-        elif ch in "+.^$":
-            return self
-        
-        elif ch == "(":
+        if ch == "(":
             return InGroupState(self)
         
         elif ch == "[":
