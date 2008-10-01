@@ -87,8 +87,6 @@ class RootState(object):
         if ch in "?*":
             self.to_append = ""
             self.hints.append("")
-            
-            return self
         
         elif ch in "+.^$":
             if self.to_append:
@@ -96,8 +94,6 @@ class RootState(object):
             
             self.to_append = ""
             self.hints.append("")
-            
-            return self
         
         elif ch == "(":
             if self.to_append:
@@ -105,8 +101,6 @@ class RootState(object):
                 
             self.to_append = ""
             self.hints.append("")
-            
-            return InGroupState(self)
         
         elif ch == "[":
             if self.to_append:
@@ -114,8 +108,6 @@ class RootState(object):
             
             self.to_append = ""
             self.hints.append("")
-            
-            return InClassState(self)
         
         elif ch == "{":
             if self.to_append:
@@ -124,8 +116,6 @@ class RootState(object):
             self.to_append = ""
             self.hints.append("")
             
-            return InBracesState(self)
-            
         elif ch == "\\":
             if self.to_append:
                 self.hints[-1] += self.to_append
@@ -133,19 +123,42 @@ class RootState(object):
             self.to_append = ""
             self.hints.append("")
             
-            return InBackslashState(self)
-            
         elif ch == "|":
             self.hints = []
-            raise StopIteration
             
         else:
             if self.to_append:
                 self.hints[-1] += self.to_append
             
             self.to_append = ch
-            
+
+
+
+
+        if ch in "?*":
             return self
+        
+        elif ch in "+.^$":
+            return self
+        
+        elif ch == "(":
+            return InGroupState(self)
+        
+        elif ch == "[":
+            return InClassState(self)
+        
+        elif ch == "{":
+            return InBracesState(self)
+            
+        elif ch == "\\":
+            return InBackslashState(self)
+            
+        elif ch == "|":
+            raise StopIteration
+            
+        else:
+            return self
+
 
 def hints(regex):
     state = RootState()
