@@ -84,11 +84,11 @@ class RootState(object):
         self.to_append    = ""
 
     def process_byte(self, ch):
-        next_state = self
-        
         if ch in "?*":
             self.to_append = ""
             self.hints.append("")
+            
+            return self
         
         elif ch in "+.^$":
             if self.to_append:
@@ -96,6 +96,8 @@ class RootState(object):
             
             self.to_append = ""
             self.hints.append("")
+            
+            return self
         
         elif ch == "(":
             if self.to_append:
@@ -103,7 +105,8 @@ class RootState(object):
                 
             self.to_append = ""
             self.hints.append("")
-            next_state = InGroupState(self)
+            
+            return InGroupState(self)
         
         elif ch == "[":
             if self.to_append:
@@ -111,7 +114,8 @@ class RootState(object):
             
             self.to_append = ""
             self.hints.append("")
-            next_state = InClassState(self)
+            
+            return InClassState(self)
         
         elif ch == "{":
             if self.to_append:
@@ -119,7 +123,8 @@ class RootState(object):
             
             self.to_append = ""
             self.hints.append("")
-            next_state = InBracesState(self)
+            
+            return InBracesState(self)
             
         elif ch == "\\":
             if self.to_append:
@@ -127,7 +132,8 @@ class RootState(object):
             
             self.to_append = ""
             self.hints.append("")
-            next_state = InBackslashState(self)
+            
+            return InBackslashState(self)
             
         elif ch == "|":
             self.hints = []
@@ -138,8 +144,8 @@ class RootState(object):
                 self.hints[-1] += self.to_append
             
             self.to_append = ch
-        
-        return next_state
+            
+            return self
 
 def hints(regex):
     state = RootState()
