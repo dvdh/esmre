@@ -69,7 +69,11 @@ class CollectingState(object):
         self.hints.append("")
     
     def bank_current_hint_and_forget_last_byte(self):
-        self.hints[-1] = self.hints[-1][:-1]
+        if isinstance(self.hints[-1], list):
+            del self.hints[-1]
+        else:
+            self.hints[-1] = self.hints[-1][:-1]
+        
         self.hints.append("")
     
     def forget_all_hints(self):
@@ -128,7 +132,7 @@ class InGroupState(CollectingState):
     def update_hints(self, ch):
         if ch == ")":
             if not self.had_alternation:
-                self.parent_state.hints.extend(self.hints)
+                self.parent_state.hints.append(self.hints)
         else:
             CollectingState.update_hints(self, ch)
     
@@ -156,7 +160,15 @@ def hints(regex):
     except StopIteration:
         pass
             
-    return [hint for hint in state.hints if hint]
+    def flattened(l):
+        for item in l:
+            if isinstance(item, list):
+                for i in flattened(item):
+                    yield i
+            else:
+                yield item
+    
+    return [hint for hint in flattened(state.hints) if hint]
 
 
 def shortlist(hints):
