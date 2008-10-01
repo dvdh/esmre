@@ -31,102 +31,110 @@ class RootState(object):
         self.in_backslash = False
         self.in_braces    = False
 
-
-def hints(regex):
-    state = RootState()
-    
-    for ch in regex:
-        if state.in_backslash:
-            state.in_backslash = False
+    def process_byte(self, ch):
+        if self.in_backslash:
+            self.in_backslash = False
             
-        elif state.in_class:
+        elif self.in_class:
             if ch == "]":
-                state.in_class = False
+                self.in_class = False
                 
             elif ch == "\\":
-                state.in_backslash = True
+                self.in_backslash = True
             
             else:
                 pass
             
-        elif state.group_level > 0:
+        elif self.group_level > 0:
             if ch == ")":
-                state.group_level -= 1
+                self.group_level -= 1
                 
             elif ch == "(":
-                state.group_level += 1
+                self.group_level += 1
                 
             elif ch == "[":
-                state.in_class = True
+                self.in_class = True
                 
             elif ch == "\\":
-                state.in_backslash = True
+                self.in_backslash = True
                 
             else:
                 pass
         
-        elif state.in_braces:
+        elif self.in_braces:
             if ch == "}":
-                state.in_braces = False
+                self.in_braces = False
             
             else:
                 pass
         
         else:
             if ch in "?*":
-                state.to_append = ""
-                state.hints.append("")
+                self.to_append = ""
+                self.hints.append("")
             
             elif ch in "+.^$":
-                if state.to_append:
-                    state.hints[-1] += state.to_append
+                if self.to_append:
+                    self.hints[-1] += self.to_append
                 
-                state.to_append = ""
-                state.hints.append("")
+                self.to_append = ""
+                self.hints.append("")
             
             elif ch == "(":
-                if state.to_append:
-                    state.hints[-1] += state.to_append
+                if self.to_append:
+                    self.hints[-1] += self.to_append
                     
-                state.to_append = ""
-                state.hints.append("")
-                state.group_level += 1
+                self.to_append = ""
+                self.hints.append("")
+                self.group_level += 1
             
             elif ch == "[":
-                if state.to_append:
-                    state.hints[-1] += state.to_append
+                if self.to_append:
+                    self.hints[-1] += self.to_append
                 
-                state.to_append = ""
-                state.hints.append("")
-                state.in_class = True
+                self.to_append = ""
+                self.hints.append("")
+                self.in_class = True
             
             elif ch == "{":
-                if state.to_append:
-                    state.hints[-1] += state.to_append[:-1]
+                if self.to_append:
+                    self.hints[-1] += self.to_append[:-1]
                 
-                state.to_append = ""
-                state.hints.append("")
-                state.in_braces = True
+                self.to_append = ""
+                self.hints.append("")
+                self.in_braces = True
                 
             elif ch == "\\":
-                if state.to_append:
-                    state.hints[-1] += state.to_append
+                if self.to_append:
+                    self.hints[-1] += self.to_append
                 
-                state.to_append = ""
-                state.hints.append("")
-                state.in_backslash = True
+                self.to_append = ""
+                self.hints.append("")
+                self.in_backslash = True
                 
             elif ch == "|":
-                return []
+                self.hints = []
+                raise StopIteration
                 
             else:
-                if state.to_append:
-                    state.hints[-1] += state.to_append
+                if self.to_append:
+                    self.hints[-1] += self.to_append
                 
-                state.to_append = ch
-            
-    if state.to_append:
-        state.hints[-1] += state.to_append
+                self.to_append = ch
+
+
+def hints(regex):
+    state = RootState()
+    
+    try:
+        for ch in regex:
+            state.process_byte(ch)
+        
+        if state.to_append:
+            state.hints[-1] += state.to_append
+    
+    except StopIteration:
+        pass
             
     return [hint for hint in state.hints if hint]
 
