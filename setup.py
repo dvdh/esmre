@@ -16,6 +16,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 # USA
 
+from ez_setup import use_setuptools
+use_setuptools()
 from setuptools import setup, Extension
 
 module1 = Extension("esm",
